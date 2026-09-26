@@ -35,12 +35,14 @@ services:
       - aiostreams_data:/mnt/volumes/aiostreams:ro
       - aiometadata_data:/mnt/volumes/aiometadata:ro
       - aiomanager_data:/mnt/volumes/aiomanager:ro
+      - prowlarr_data:/mnt/volumes/prowlarr:ro
       - ../portainer/.env:/mnt/volumes/env/portainer/.env:ro
       - ../caddy/.env:/mnt/volumes/env/caddy/.env:ro
       - ../redis/.env:/mnt/volumes/env/redis/.env:ro
       - ../aiostreams/.env:/mnt/volumes/env/aiostreams/.env:ro
       - ../aiometadata/.env:/mnt/volumes/env/aiometadata/.env:ro
       - ../aiomanager/.env:/mnt/volumes/env/aiomanager/.env:ro
+      - ../prowlarr/.env:/mnt/volumes/env/prowlarr/.env:ro
       - ../backup/.env:/mnt/volumes/env/backup/.env:ro
       - ./restic-repo:/mnt/restic
     networks:
@@ -105,6 +107,8 @@ volumes:
   aiometadata_data:
     external: true
   aiomanager_data:
+    external: true
+  prowlarr_data:
     external: true
 
 networks:

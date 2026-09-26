@@ -54,6 +54,17 @@ tasks:
     cmds:
       - docker compose --env-file aiomanager/.env -f aiomanager/compose.yaml down
 
+  up:prowlarr:
+    desc: Start Prowlarr
+    deps: [network]
+    cmds:
+      - docker compose --env-file prowlarr/.env -f prowlarr/compose.yaml up -d
+
+  down:prowlarr:
+    desc: Stop Prowlarr
+    cmds:
+      - docker compose --env-file prowlarr/.env -f prowlarr/compose.yaml down
+
   up:redis:
     desc: Start Redis
     run: once
@@ -93,6 +104,7 @@ tasks:
     cmds:
       - task: up:portainer
       - task: up:redis
+      - task: up:prowlarr
       - task: up:aiometadata
       - task: up:aiostreams
       - task: up:aiomanager
@@ -107,5 +119,6 @@ tasks:
       - task: down:aiomanager
       - task: down:aiostreams
       - task: down:aiometadata
+      - task: down:prowlarr
       - task: down:redis
       - task: down:portainer
