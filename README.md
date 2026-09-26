@@ -131,7 +131,17 @@ on its own. Key things you'll want to set:
 - `portainer/.env` `INTERFACE`: the host's Tailscale IP
   (`tailscale ip -4`); Portainer binds here only
 - `prowlarr/.env` `INTERFACE`: the same Tailscale IP; Prowlarr's UI binds
-  here only. On first visit it asks you to set its login
+  here only. Prowlarr has no user yet, and its UI won't offer to create one
+  (the login method is preset), so create it via the API once, on the host:
+  ```sh
+  read -rp 'Username: ' U && read -rsp 'Password: ' P && echo && \
+  K=$(grep -oP '^PROWLARR__AUTH__APIKEY=\K.*' prowlarr/.env) && \
+  I=$(grep -oP '^INTERFACE=\K.*' prowlarr/.env) && \
+  curl -fsS -H "X-Api-Key: $K" "http://$I:9696/api/v1/config/host" \
+  | U="$U" P="$P" python3 -c 'import sys,json,os; d=json.load(sys.stdin); d.update(username=os.environ["U"], password=os.environ["P"], passwordConfirmation=os.environ["P"]); print(json.dumps(d))' \
+  | curl -fsS -o /dev/null -X PUT -H "X-Api-Key: $K" -H 'Content-Type: application/json' \
+      --data @- "http://$I:9696/api/v1/config/host/1"; unset U P K I
+  ```
 - `caddy/.env` `AIOSTREAMS_DOMAIN` / `AIOMETADATA_DOMAIN` /
   `AIOMANAGER_DOMAIN`: public hostnames for each service
 - `caddy/.env` `TLS`: `tls internal` for local dev, empty in production
