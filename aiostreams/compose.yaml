@@ -1,6 +1,6 @@
 services:
   aiostreams:
-    image: ghcr.io/viren070/aiostreams:v2.34.1
+    image: ghcr.io/viren070/aiostreams:v2.35.0
     container_name: aiostreams
     restart: unless-stopped
     security_opt:
