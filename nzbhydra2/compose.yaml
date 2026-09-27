@@ -1,0 +1,48 @@
+services:
+  nzbhydra2:
+    image: lscr.io/linuxserver/nzbhydra2:v9.0.6-ls108
+    container_name: nzbhydra2
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    # s6 starts as root, chowns /config and runs Hydra as the abc user.
+    # PUID/PGID are ignored: remapping abc needs a writable /etc/passwd.
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    read_only: true
+    tmpfs:
+      - /run:exec
+      - /tmp
+    pids_limit: 512
+    # Settings live in /config/nzbhydra.yml, not the environment: the API
+    # key is generated there on first start, and the login and NZB access
+    # (default PROXY, so indexers only ever see Hydra) are set in the UI.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:5076/actuator/health/ping"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      # Tailscale-only web UI. No Caddy site: never public.
+      - "${INTERFACE:?}:5076:5076"
+    volumes:
+      - data:/config
+    networks:
+      - apollo
+
+volumes:
+  data:
+
+networks:
+  apollo:
+    external: true

@@ -36,6 +36,7 @@ services:
       - aiometadata_data:/mnt/volumes/aiometadata:ro
       - aiomanager_data:/mnt/volumes/aiomanager:ro
       - prowlarr_data:/mnt/volumes/prowlarr:ro
+      - nzbhydra2_data:/mnt/volumes/nzbhydra2:ro
       - ../portainer/.env:/mnt/volumes/env/portainer/.env:ro
       - ../caddy/.env:/mnt/volumes/env/caddy/.env:ro
       - ../redis/.env:/mnt/volumes/env/redis/.env:ro
@@ -43,6 +44,7 @@ services:
       - ../aiometadata/.env:/mnt/volumes/env/aiometadata/.env:ro
       - ../aiomanager/.env:/mnt/volumes/env/aiomanager/.env:ro
       - ../prowlarr/.env:/mnt/volumes/env/prowlarr/.env:ro
+      - ../nzbhydra2/.env:/mnt/volumes/env/nzbhydra2/.env:ro
       - ../backup/.env:/mnt/volumes/env/backup/.env:ro
       - ./restic-repo:/mnt/restic
     networks:
@@ -109,6 +111,8 @@ volumes:
   aiomanager_data:
     external: true
   prowlarr_data:
+    external: true
+  nzbhydra2_data:
     external: true
 
 networks:

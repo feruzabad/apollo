@@ -35,7 +35,7 @@ on the same disk as everything else it backs up.
    created them; without them, Compose warns on every start that the volume
    "was not created by Docker Compose":
    ```sh
-   for s in portainer caddy aiostreams aiometadata aiomanager prowlarr; do
+   for s in portainer caddy aiostreams aiometadata aiomanager prowlarr nzbhydra2; do
      docker volume create \
        --label com.docker.compose.project=$s \
        --label com.docker.compose.volume=data \
@@ -60,6 +60,7 @@ on the same disk as everything else it backs up.
      -v aiometadata_data:/mnt/volumes/aiometadata \
      -v aiomanager_data:/mnt/volumes/aiomanager \
      -v prowlarr_data:/mnt/volumes/prowlarr \
+     -v nzbhydra2_data:/mnt/volumes/nzbhydra2 \
      -v "$(pwd)/restore-env:/mnt/volumes/env" \
      mazzolino/restic:1.8.2 restic restore latest --target /
    ```
@@ -77,6 +78,7 @@ on the same disk as everything else it backs up.
      -v aiometadata_data:/mnt/volumes/aiometadata \
      -v aiomanager_data:/mnt/volumes/aiomanager \
      -v prowlarr_data:/mnt/volumes/prowlarr \
+     -v nzbhydra2_data:/mnt/volumes/nzbhydra2 \
      -v "$(pwd)/restore-env:/mnt/volumes/env" \
      mazzolino/restic:1.8.2 restic restore latest --target /
    ```
@@ -93,6 +95,7 @@ on the same disk as everything else it backs up.
    - `portainer/.env` `INTERFACE`: the new server's Tailscale IP
      (`tailscale ip -4`).
    - `prowlarr/.env` `INTERFACE`: the same Tailscale IP.
+   - `nzbhydra2/.env` `INTERFACE`: the same Tailscale IP.
 
 6. Bring the stack up:
    ```sh
@@ -120,4 +123,5 @@ on the same disk as everything else it backs up.
    curl -I https://<AIOMANAGER_DOMAIN>
    ```
    Confirm Portainer loads over the tailnet at `https://<tailscale-ip>:9443`,
-   and Prowlarr at `http://<tailscale-ip>:9696`.
+   Prowlarr at `http://<tailscale-ip>:9696` and NZBHydra2 at
+   `http://<tailscale-ip>:5076`.

@@ -65,6 +65,17 @@ tasks:
     cmds:
       - docker compose --env-file prowlarr/.env -f prowlarr/compose.yaml down
 
+  up:nzbhydra2:
+    desc: Start NZBHydra2
+    deps: [network]
+    cmds:
+      - docker compose --env-file nzbhydra2/.env -f nzbhydra2/compose.yaml up -d
+
+  down:nzbhydra2:
+    desc: Stop NZBHydra2
+    cmds:
+      - docker compose --env-file nzbhydra2/.env -f nzbhydra2/compose.yaml down
+
   up:redis:
     desc: Start Redis
     run: once
@@ -105,6 +116,7 @@ tasks:
       - task: up:portainer
       - task: up:redis
       - task: up:prowlarr
+      - task: up:nzbhydra2
       - task: up:aiometadata
       - task: up:aiostreams
       - task: up:aiomanager
@@ -119,6 +131,7 @@ tasks:
       - task: down:aiomanager
       - task: down:aiostreams
       - task: down:aiometadata
+      - task: down:nzbhydra2
       - task: down:prowlarr
       - task: down:redis
       - task: down:portainer
