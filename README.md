@@ -12,17 +12,16 @@ Apollo bundles a [Stremio](https://www.stremio.com/)/[Nuvio](https://github.com/
 streaming addon ([AIOStreams](https://github.com/Viren070/AIOStreams)) and a
 metadata addon ([AIOMetadata](https://github.com/cedya77/aiometadata)) and an
 account/addon manager ([AIOManager](https://github.com/Sonicx161/AIOManager)) behind
-[Caddy](https://caddyserver.com/), with [Prowlarr](https://prowlarr.com/) and
-[NZBHydra2](https://github.com/theotherp/nzbhydra2) feeding AIOStreams indexers,
-[Portainer](https://www.portainer.io/) for container management,
-[Redis](https://redis.io/) for caching, and automated [restic](https://restic.net/)
-backups, orchestrated end-to-end with [Task](https://taskfile.dev).
+[Caddy](https://caddyserver.com/), with [NZBHydra2](https://github.com/theotherp/nzbhydra2)
+feeding AIOStreams usenet indexers, [Portainer](https://www.portainer.io/) for
+container management, [Redis](https://redis.io/) for caching, and automated
+[restic](https://restic.net/) backups, orchestrated end-to-end with [Task](https://taskfile.dev).
 
 This is an opinionated setup, not a general-purpose template: **Tailscale is
-mandatory**, not an optional extra. Portainer, Prowlarr and NZBHydra2 have no
-public exposure path; their web UIs (Portainer on 9443 with its own self-signed
-HTTPS, Prowlarr on 9696, NZBHydra2 on 5076) are bound only to the host's
-Tailscale IP. There's no fallback for running this without a tailnet.
+mandatory**, not an optional extra. Portainer and NZBHydra2 have no public
+exposure path; their web UIs (Portainer on 9443 with its own self-signed HTTPS,
+NZBHydra2 on 5076) are bound only to the host's Tailscale IP. There's no
+fallback for running this without a tailnet.
 
 ## Features
 
@@ -34,12 +33,8 @@ Tailscale IP. There's no fallback for running this without a tailnet.
 - Caddy in front of the public sites, with real Let's Encrypt certs
 - Portainer for container management, reachable only over the tailnet at
   `https://<tailscale-ip>:9443`
-- Prowlarr as AIOStreams' indexer manager: AIOStreams reaches it over the
-  internal Docker network, its web UI only over the tailnet at
-  `http://<tailscale-ip>:9696`
 - NZBHydra2 for usenet indexers: it downloads NZBs itself and hands them to
-  AIOStreams, so indexers only ever see Hydra (Prowlarr always redirects
-  usenet downloads to the indexer). Web UI only over the tailnet at
+  AIOStreams, so indexers only ever see Hydra. Web UI only over the tailnet at
   `http://<tailscale-ip>:5076`
 - Automated restic backup/prune/check jobs, covering every service's `.env`
   alongside its data volume; local by default, optionally offsite (e.g.
@@ -67,7 +62,6 @@ Tailscale IP. There's no fallback for running this without a tailnet.
                     └───────────────────────┘
 
    Tailscale ────────────▶ Portainer :9443 (internal only)
-   Tailscale ────────────▶ Prowlarr :9696 (internal only, AIOStreams via apollo)
    Tailscale ────────────▶ NZBHydra2 :5076 (internal only, AIOStreams via apollo)
 ```
 
@@ -91,7 +85,6 @@ traffic to debrid/usenet services on a single address.
 | `aiostreams`  | `aiostreams/`  | Stremio/Nuvio streaming addon          | External                     |
 | `aiometadata` | `aiometadata/` | Stremio/Nuvio metadata addon           | External                     |
 | `aiomanager`  | `aiomanager/`  | Stremio/Nuvio account/addon manager    | External                     |
-| `prowlarr`    | `prowlarr/`    | Torrent indexer manager for AIOStreams  | Internal (Tailscale) only    |
 | `nzbhydra2`   | `nzbhydra2/`   | Usenet indexer manager for AIOStreams   | Internal (Tailscale) only    |
 | `redis`       | `redis/`       | Cache shared by AIOStreams/AIOMetadata | Internal (apollo network)    |
 | `backup`      | `backup/`      | restic backup / prune / check jobs     | n/a                           |
@@ -103,8 +96,7 @@ traffic to debrid/usenet services on a single address.
 - [Docker](https://docs.docker.com/get-docker/)
 - [Task](https://taskfile.dev/installation/)
 - [Tailscale](https://tailscale.com/), installed and running on the host:
-  required, not optional. Portainer, Prowlarr and NZBHydra2 are only reachable
-  over it.
+  required, not optional. Portainer and NZBHydra2 are only reachable over it.
 
 ### Installation
 
@@ -137,9 +129,6 @@ on its own. Key things you'll want to set:
 
 - `portainer/.env` `INTERFACE`: the host's Tailscale IP
   (`tailscale ip -4`); Portainer binds here only
-- `prowlarr/.env` `INTERFACE`: the same Tailscale IP; Prowlarr's UI binds
-  here only. Its first visit asks you to create the login; until then the UI
-  is open to the tailnet, so do it right after the first `task up`
 - `nzbhydra2/.env` `INTERFACE`: the same Tailscale IP; Hydra's UI binds here
   only. Hydra starts without a login, so right after the first `task up` set
   Config > Authorization to Login form, add an admin user and restrict all
@@ -157,8 +146,6 @@ set to the same value in both files:
 
 - Redis password: `redis/.env` `PASSWORD`, and `REDIS_PASSWORD` in
   `aiostreams/.env` and `aiometadata/.env`
-- Prowlarr API key: `prowlarr/.env` `PROWLARR__AUTH__APIKEY` and
-  `aiostreams/.env` `BUILTIN_PROWLARR_API_KEY`
 - NZBHydra2 API key: generated by Hydra (Config > Main), copied into
   `aiostreams/.env` `BUILTIN_NZBHYDRA_API_KEY`
 - Public URLs: `caddy/.env` domains and each app's own base URL
@@ -179,6 +166,5 @@ from backup.
 - [AIOMetadata](https://github.com/cedya77/aiometadata)
 - [AIOManager](https://github.com/Sonicx161/AIOManager)
 - [Caddy](https://github.com/caddyserver/caddy)
-- [Prowlarr](https://github.com/Prowlarr/Prowlarr)
 - [NZBHydra2](https://github.com/theotherp/nzbhydra2)
 - [Portainer](https://github.com/portainer/portainer)

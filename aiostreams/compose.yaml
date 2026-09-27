@@ -15,9 +15,6 @@ services:
       REDIS_URI: "redis://:${REDIS_PASSWORD:?}@redis:6379"
       AIOSTREAMS_AUTH: "${AIOSTREAMS_AUTH:?}"
       AIOSTREAMS_AUTH_REQUIRED: "true"
-      # Built-in Prowlarr addon, over the apollo network.
-      BUILTIN_PROWLARR_URL: "http://prowlarr:9696"
-      BUILTIN_PROWLARR_API_KEY: "${BUILTIN_PROWLARR_API_KEY:?}"
       # Built-in NZBHydra addon, over the apollo network. Hydra proxies NZB
       # downloads, so usenet indexers never see AIOStreams.
       BUILTIN_NZBHYDRA_URL: "http://nzbhydra2:5076"

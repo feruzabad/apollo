@@ -54,17 +54,6 @@ tasks:
     cmds:
       - docker compose --env-file aiomanager/.env -f aiomanager/compose.yaml down
 
-  up:prowlarr:
-    desc: Start Prowlarr
-    deps: [network]
-    cmds:
-      - docker compose --env-file prowlarr/.env -f prowlarr/compose.yaml up -d
-
-  down:prowlarr:
-    desc: Stop Prowlarr
-    cmds:
-      - docker compose --env-file prowlarr/.env -f prowlarr/compose.yaml down
-
   up:nzbhydra2:
     desc: Start NZBHydra2
     deps: [network]
@@ -115,7 +104,6 @@ tasks:
     cmds:
       - task: up:portainer
       - task: up:redis
-      - task: up:prowlarr
       - task: up:nzbhydra2
       - task: up:aiometadata
       - task: up:aiostreams
@@ -132,6 +120,5 @@ tasks:
       - task: down:aiostreams
       - task: down:aiometadata
       - task: down:nzbhydra2
-      - task: down:prowlarr
       - task: down:redis
       - task: down:portainer
