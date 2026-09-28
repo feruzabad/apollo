@@ -19,6 +19,25 @@ services:
       # POSTER_CACHE_MAX_SIZE of re-downloadable images stays out of backups.
       ENABLE_BUILTIN_POSTER_CACHE: "true"
       POSTER_CACHE_DIR: /app/poster-cache
+      # Also cache the largest and most-reused art types on disk. Episode
+      # thumbnails and cast photos stay off: numerous and rarely re-viewed.
+      POSTER_CACHE_BACKGROUNDS: "true"
+      POSTER_CACHE_LOGOS: "true"
+      POSTER_CACHE_LANDSCAPE_POSTERS: "true"
+      POSTER_CACHE_MAX_SIZE: 10g
+      # Disk tier behind Redis for stable metadata (older films, ended series),
+      # kept 60-180 days instead of Redis's 7, so fewer upstream lookups.
+      # Rebuildable, so on its own volume that backups skip.
+      META_COLD_STORE_ENABLED: "true"
+      META_COLD_STORE_PATH: /app/meta-cache/metacache.sqlite
+      META_COLD_STORE_MAX_BYTES: 2gb
+      # Redis's maxmemory and eviction policy are set in redis/compose.yaml;
+      # Redis is shared with AIOStreams, so don't let this addon retune it.
+      REDIS_AUTOTUNE: "false"
+      # Rebuild every catalog of these configs in the background (daily), so
+      # catalogs open from cache. Empty CACHE_WARMUP_UUIDS keeps this off.
+      CACHE_WARMUP_MODE: comprehensive
+      CACHE_WARMUP_UUIDS: "${CACHE_WARMUP_UUIDS:-}"
     logging:
       driver: json-file
       options:
@@ -27,12 +46,14 @@ services:
     volumes:
       - data:/app/addon/data
       - cache:/app/poster-cache
+      - coldstore:/app/meta-cache
     networks:
       - apollo
 
 volumes:
   data:
   cache:
+  coldstore:
 
 networks:
   apollo:

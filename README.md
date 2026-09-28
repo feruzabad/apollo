@@ -26,8 +26,9 @@ fallback for running this without a tailnet.
 ## Features
 
 - AIOStreams: unified streaming addon for Stremio/Nuvio clients
-- AIOMetadata: metadata addon, with its built-in image cache on a separate
-  volume that backups skip, since the images can be re-downloaded
+- AIOMetadata: metadata addon, with its built-in image cache and an on-disk
+  metadata tier (cold store) behind Redis, each on a separate volume that
+  backups skip, since both can be rebuilt; catalogs can be pre-warmed daily
 - AIOManager: addon management and sync across Stremio/Nuvio accounts,
   with registrations closed once your own account exists
 - Caddy in front of the public sites, with real Let's Encrypt certs

@@ -3,7 +3,17 @@ services:
     image: redis:8.10.2
     container_name: redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --save 3600 1 --requirepass ${PASSWORD:?}
+    # Capped so the cache can never starve the host. volatile-lfu evicts only
+    # keys with a TTL (caches), least-used first, never keys meant to persist.
+    # Lazy freeing and active defrag keep evictions and expiries off the main
+    # thread and the footprint tight (AIOMetadata's REDIS_AUTOTUNE defaults,
+    # set here since Redis is shared).
+    command: >-
+      redis-server --appendonly yes --save 3600 1
+      --maxmemory 400mb --maxmemory-policy volatile-lfu
+      --lazyfree-lazy-eviction yes --lazyfree-lazy-expire yes
+      --lazyfree-lazy-server-del yes --activedefrag yes
+      --requirepass ${PASSWORD:?}
     security_opt:
       - no-new-privileges:true
     # The entrypoint chowns /data and drops to the redis user via setpriv.
