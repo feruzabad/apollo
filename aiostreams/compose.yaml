@@ -15,9 +15,10 @@ services:
       REDIS_URI: "redis://:${REDIS_PASSWORD:?}@redis:6379"
       AIOSTREAMS_AUTH: "${AIOSTREAMS_AUTH:?}"
       AIOSTREAMS_AUTH_REQUIRED: "true"
-      # Built-in NZBHydra addon, over the apollo network. Hydra proxies NZB
-      # downloads, so usenet indexers never see AIOStreams.
-      BUILTIN_NZBHYDRA_URL: "http://nzbhydra2:5076"
+      # Built-in NZBHydra addon. Hydra proxies NZB downloads, so usenet
+      # indexers never see AIOStreams. Hydra builds its NZB links from this
+      # address, so whatever fetches the NZBs must be able to reach it.
+      BUILTIN_NZBHYDRA_URL: "${BUILTIN_NZBHYDRA_URL:-http://nzbhydra2:5076}"
       BUILTIN_NZBHYDRA_API_KEY: "${BUILTIN_NZBHYDRA_API_KEY}"
     logging:
       driver: json-file
