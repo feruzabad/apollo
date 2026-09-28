@@ -96,6 +96,8 @@ on the same disk as everything else it backs up.
 
 6. Bring the stack up:
    ```sh
+   sudo install -Dm644 host/wait-for-tailscale.conf /etc/systemd/system/docker.service.d/wait-for-tailscale.conf
+   sudo systemctl daemon-reload
    task up
    ```
    Caddy re-fetches Let's Encrypt certs for the external sites as needed,
