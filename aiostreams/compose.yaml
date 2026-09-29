@@ -20,6 +20,10 @@ services:
       # address, so whatever fetches the NZBs must be able to reach it.
       BUILTIN_NZBHYDRA_URL: "${BUILTIN_NZBHYDRA_URL:-http://nzbhydra2:5076}"
       BUILTIN_NZBHYDRA_API_KEY: "${BUILTIN_NZBHYDRA_API_KEY}"
+      # Reuse a resolved usenet/debrid stream link for a day (default 1h), so
+      # replaying or resuming a release doesn't grab its NZB from the indexer
+      # again. Matches how long AltMount keeps processed releases (24h).
+      BUILTIN_DEBRID_PLAYBACK_LINK_CACHE_TTL: "86400"
     logging:
       driver: json-file
       options:
