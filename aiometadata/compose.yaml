@@ -1,6 +1,6 @@
 services:
   aiometadata:
-    image: ghcr.io/cedya77/aiometadata:3.2.3
+    image: ghcr.io/cedya77/aiometadata:3.3.2
     container_name: aiometadata
     restart: unless-stopped
     security_opt:
