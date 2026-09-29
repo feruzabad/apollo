@@ -1,6 +1,6 @@
 services:
   nzbhydra2:
-    image: lscr.io/linuxserver/nzbhydra2:v9.0.6-ls108
+    image: lscr.io/linuxserver/nzbhydra2:v9.1.0-ls108
     container_name: nzbhydra2
     restart: unless-stopped
     security_opt:
