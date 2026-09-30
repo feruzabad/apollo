@@ -29,7 +29,8 @@ services:
       POSTER_CACHE_BACKGROUNDS: "true"
       POSTER_CACHE_LOGOS: "true"
       POSTER_CACHE_LANDSCAPE_POSTERS: "true"
-      POSTER_CACHE_MAX_SIZE: 10g
+      POSTER_CACHE_MAX_SIZE: "${POSTER_CACHE_MAX_SIZE:-10g}"
+      POSTER_CACHE_MEMORY_SIZE: "${POSTER_CACHE_MEMORY_SIZE:-128m}"
       # Disk tier behind Redis for stable metadata (older films, ended series),
       # kept 60-180 days instead of Redis's 7, so fewer upstream lookups.
       # Rebuildable, so on its own volume that backups skip.
