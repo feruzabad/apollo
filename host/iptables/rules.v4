@@ -1,0 +1,46 @@
+# iptables (IPv4) rules for the Apollo host, loaded at boot by
+# iptables-persistent. Only the filter table's INPUT and DOCKER-USER are ours:
+# Docker and Tailscale add their own chains on top once they start.
+#
+# Public: Caddy's published 80/tcp, 443/tcp, 443/udp (HTTP/3).
+# Tailscale only: everything else (SSH, Portainer 9443, NZBHydra2 5076).
+# Outbound stays open: the addons reach debrid/usenet/metadata APIs anywhere.
+#
+# Install (hand-written: never `netfilter-persistent save`, it would also
+# freeze Docker's and Tailscale's chains into this file):
+#   sudo install -m644 host/iptables/rules.v4 /etc/iptables/rules.v4
+#   sudo netfilter-persistent reload
+#   sudo systemctl restart tailscaled docker   # reload flushed their chains
+#
+# Changed HTTP_PORT/HTTPS_PORT in caddy/.env? Change the DOCKER-USER ports.
+
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:DOCKER-USER - [0:0]
+
+# Host itself. Published container ports never reach INPUT: Docker DNATs
+# them in PREROUTING, so they're filtered in DOCKER-USER below.
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+-A INPUT -i tailscale0 -j ACCEPT
+# Tailscale direct (peer-to-peer) connections; without it, traffic is relayed.
+-A INPUT -p udp --dport 41641 -j ACCEPT
+-A INPUT -p udp --sport 67 --dport 68 -j ACCEPT
+-A INPUT -p icmp --icmp-type echo-request -m limit --limit 5/second -j ACCEPT
+
+# Traffic to containers. Docker jumps here before its own rules.
+-A DOCKER-USER -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+# Containers' own traffic (outbound, and between containers).
+-A DOCKER-USER -i docker0 -j RETURN
+-A DOCKER-USER -i br-+ -j RETURN
+# Portainer and NZBHydra2 publish on the Tailscale IP only.
+-A DOCKER-USER -i tailscale0 -j RETURN
+-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 80 -j RETURN
+-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 443 -j RETURN
+-A DOCKER-USER -p udp -m conntrack --ctorigdstport 443 -j RETURN
+-A DOCKER-USER -j DROP
+
+COMMIT

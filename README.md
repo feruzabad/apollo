@@ -98,18 +98,13 @@ traffic to debrid/usenet services on a single address.
 - [Task](https://taskfile.dev/installation/)
 - [Tailscale](https://tailscale.com/), installed and running on the host:
   required, not optional. Portainer and NZBHydra2 are only reachable over it.
+- [iptables-persistent](https://wiki.debian.org/iptables), for the host
+  firewall in `host/iptables/`
 
 ### Installation
 
-```sh
-git clone <this-repo>
-cd apollo
-for d in */; do [ -f "$d.env.example" ] && cp "$d.env.example" "$d.env"; done
-# fill in each */.env with your domains, IPs, and secrets
-sudo install -Dm644 host/wait-for-tailscale.conf /etc/systemd/system/docker.service.d/wait-for-tailscale.conf
-sudo systemctl daemon-reload
-task up
-```
+See [SETUP.md](SETUP.md) for the step-by-step install: `.env` files,
+Tailscale, first start, post-install steps and the host firewall.
 
 Task creates the shared networks and brings every service up in the
 right order. Every service restarts with Docker (`restart: unless-stopped`),

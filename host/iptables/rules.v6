@@ -1,0 +1,42 @@
+# ip6tables (IPv6) rules for the Apollo host, the IPv6 twin of rules.v4.
+# Caddy's apollo_edge network is IPv6-enabled, so 80/443 are published on
+# IPv6 too. See rules.v4 for how to install and reload.
+#
+# Install:
+#   sudo install -m644 host/iptables/rules.v6 /etc/iptables/rules.v6
+#   sudo netfilter-persistent reload
+#   sudo systemctl restart tailscaled docker   # reload flushed their chains
+
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:DOCKER-USER - [0:0]
+
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+-A INPUT -i tailscale0 -j ACCEPT
+-A INPUT -p udp --dport 41641 -j ACCEPT
+# IPv6 doesn't work without these: path MTU, errors, neighbor discovery and
+# router advertisements (link-local only, hop limit 255), DHCPv6 replies.
+-A INPUT -p ipv6-icmp --icmpv6-type destination-unreachable -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type packet-too-big -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type time-exceeded -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type parameter-problem -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type router-advertisement -m hl --hl-eq 255 -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type neighbor-solicitation -m hl --hl-eq 255 -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type neighbor-advertisement -m hl --hl-eq 255 -j ACCEPT
+-A INPUT -s fe80::/10 -p udp --sport 547 --dport 546 -j ACCEPT
+-A INPUT -p ipv6-icmp --icmpv6-type echo-request -m limit --limit 5/second -j ACCEPT
+
+-A DOCKER-USER -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+-A DOCKER-USER -i docker0 -j RETURN
+-A DOCKER-USER -i br-+ -j RETURN
+-A DOCKER-USER -i tailscale0 -j RETURN
+-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 80 -j RETURN
+-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 443 -j RETURN
+-A DOCKER-USER -p udp -m conntrack --ctorigdstport 443 -j RETURN
+-A DOCKER-USER -j DROP
+
+COMMIT
