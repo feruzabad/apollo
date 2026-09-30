@@ -14,6 +14,10 @@ services:
       REDIS_URL: "redis://:${REDIS_PASSWORD:?}@redis:6379"
       ADMIN_KEY: "${ADMIN_KEY}"
       ADDON_PASSWORD: "${ADDON_PASSWORD}"
+      BUILT_IN_TMDB_API_KEY: "${BUILT_IN_TMDB_API_KEY:-}"
+      BUILT_IN_TVDB_API_KEY: "${BUILT_IN_TVDB_API_KEY:-}"
+      BUILT_IN_FANART_API_KEY: "${BUILT_IN_FANART_API_KEY:-}"
+      BUILT_IN_MDBLIST_API_KEY: "${BUILT_IN_MDBLIST_API_KEY:-}"
       # Serves artwork from local disk at /poster-cache instead of re-fetching
       # it upstream. Kept out of data (the default) so up to
       # POSTER_CACHE_MAX_SIZE of re-downloadable images stays out of backups.

@@ -50,7 +50,7 @@ Each `.env.example` documents its variables and how to generate each secret
 | `redis/.env`       | `PASSWORD`                                                                          |
 | `caddy/.env`       | `AIOSTREAMS_DOMAIN`, `AIOMETADATA_DOMAIN`, `AIOMANAGER_DOMAIN`, `TLS` (see below)   |
 | `aiostreams/.env`  | `BASE_URL`, `SECRET_KEY`, `AIOSTREAMS_AUTH`, `REDIS_PASSWORD`. The Hydra key comes in step 7 |
-| `aiometadata/.env` | `HOST_NAME`, `ADMIN_KEY`, `ADDON_PASSWORD`, `REDIS_PASSWORD`                        |
+| `aiometadata/.env` | `HOST_NAME`, `ADMIN_KEY`, `ADDON_PASSWORD`, `REDIS_PASSWORD`; optionally the `BUILT_IN_*_API_KEY`s |
 | `aiomanager/.env`  | `CORS_ORIGINS`, `ENCRYPTION_KEY`                                                    |
 | `portainer/.env`   | `INTERFACE`: the Tailscale IP from step 2                                           |
 | `nzbhydra2/.env`   | `INTERFACE`: the same Tailscale IP                                                  |
