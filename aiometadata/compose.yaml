@@ -18,6 +18,7 @@ services:
       BUILT_IN_TVDB_API_KEY: "${BUILT_IN_TVDB_API_KEY:-}"
       BUILT_IN_FANART_API_KEY: "${BUILT_IN_FANART_API_KEY:-}"
       BUILT_IN_MDBLIST_API_KEY: "${BUILT_IN_MDBLIST_API_KEY:-}"
+      BUILT_IN_GEMINI_API_KEY: "${BUILT_IN_GEMINI_API_KEY:-}"
       # Serves artwork from local disk at /poster-cache instead of re-fetching
       # it upstream. Kept out of data (the default) so up to
       # POSTER_CACHE_MAX_SIZE of re-downloadable images stays out of backups.
