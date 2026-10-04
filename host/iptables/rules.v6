@@ -4,8 +4,7 @@
 #
 # Install:
 #   sudo install -m644 host/iptables/rules.v6 /etc/iptables/rules.v6
-#   sudo netfilter-persistent reload
-#   sudo systemctl restart tailscaled docker   # reload flushed their chains
+#   sudo sh -c 'ip6tables-restore < /etc/iptables/rules.v6 && systemctl restart tailscaled docker'
 
 *filter
 :INPUT DROP [0:0]

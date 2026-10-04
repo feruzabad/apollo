@@ -9,8 +9,10 @@
 # Install (hand-written: never `netfilter-persistent save`, it would also
 # freeze Docker's and Tailscale's chains into this file):
 #   sudo install -m644 host/iptables/rules.v4 /etc/iptables/rules.v4
-#   sudo netfilter-persistent reload
-#   sudo systemctl restart tailscaled docker   # reload flushed their chains
+#   sudo sh -c 'iptables-restore < /etc/iptables/rules.v4 && systemctl restart tailscaled docker'
+# iptables-restore flushes Docker's and Tailscale's chains, hence the restart.
+# Not `netfilter-persistent reload`: with IPTABLES_RESTORE_NOFLUSH (set by
+# some cloud images) it appends instead of replacing. See SETUP.md.
 #
 # Changed HTTP_PORT/HTTPS_PORT in caddy/.env? Change the DOCKER-USER ports.
 

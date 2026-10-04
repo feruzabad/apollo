@@ -1,21 +1,27 @@
 # Setup
 
-Step-by-step install of Apollo on a fresh Linux server, tested on Debian 13.
-Every command runs on the server as a non-root user with `sudo`, from the
-repo root unless noted.
+Step-by-step install of Apollo on a fresh Linux server. Tested on Debian 13
+(amd64) and Ubuntu 26.04 (arm64, Oracle Cloud). Every image is multi-arch,
+so amd64 and arm64 hosts both work. Every command runs on the server as a
+non-root user with `sudo`, from the repo root unless noted.
+
+On a cloud VM, read [Provider notes](#provider-notes) first.
 
 ## 1. Prerequisites
 
 Install these first, following each project's own instructions:
 
-- [git](https://git-scm.com/downloads/linux)
-- [Docker Engine](https://docs.docker.com/engine/install/debian/) with the
-  Compose plugin, and your user in the `docker` group
-  ([post-install](https://docs.docker.com/engine/install/linux-postinstall/))
+- [git](https://git-scm.com/downloads/linux) (minimal cloud images often
+  lack it)
+- [Docker Engine](https://docs.docker.com/engine/install/) from Docker's own
+  apt repository, with the Compose plugin, and your user in the `docker`
+  group ([post-install](https://docs.docker.com/engine/install/linux-postinstall/));
+  log out and back in for the group to apply
 - [Task](https://taskfile.dev/installation/)
 - [Tailscale](https://tailscale.com/download/linux)
 - [iptables-persistent](https://wiki.debian.org/iptables) (answer "No" when
-  it offers to save the current rules)
+  it offers to save the current rules). Some cloud images ship it
+  preinstalled with their own rules; see [Provider notes](#provider-notes).
 
 ## 2. Join the tailnet
 
@@ -34,7 +40,7 @@ move on until it works: the firewall in step 8 closes public SSH.
 ## 3. Clone and create the `.env` files
 
 ```sh
-git clone https://github.com/yarimadam/apollo.git
+git clone --depth 1 https://github.com/feruzabad/apollo.git
 cd apollo
 for d in */; do [ -f "$d.env.example" ] && cp "$d.env.example" "$d.env"; done
 chmod 600 */.env
@@ -74,7 +80,10 @@ everything else.
 - **Production:** create DNS A (and AAAA, if the server has IPv6) records for
   the three domains pointing at the server, and set `TLS=` (empty). Caddy
   fetches Let's Encrypt certificates on first start, so ports 80 and 443 must
-  be reachable from the internet.
+  be reachable from the internet. On a cloud VM, that includes the
+  provider's firewall (security group, security list, ...): allow 80/tcp,
+  443/tcp and 443/udp in. With Cloudflare DNS, keep the records DNS-only
+  (grey cloud), so Caddy can answer the ACME challenge itself.
 - **Local/testing:** keep `TLS='tls internal'` (self-signed). Any hostnames
   work, e.g. `aiostreams.apollo.test`; reach them with a hosts-file entry or
   `curl -k --resolve <domain>:443:<server-ip> https://<domain>/`.
@@ -105,7 +114,11 @@ back after a reboot on its own.
 1. **NZBHydra2 login.** Hydra starts without a login. Open
    `http://<tailscale-ip>:5076`, go to Config > Authorization, choose "Login
    form", add an admin user and restrict all sections. Leave Config >
-   Downloading > NZB access type at "Proxy".
+   Downloading > NZB access type at "Proxy". Click **Save** at the top of
+   the Config page: nothing is applied until you do. Check that it stuck:
+   ```sh
+   docker exec nzbhydra2 grep authType /config/nzbhydra.yml   # authType: "FORM"
+   ```
 2. **NZBHydra2 API key → AIOStreams.** Hydra generates the key on first
    start (Config > Main > API key). Copy it into `aiostreams/.env`
    `BUILTIN_NZBHYDRA_API_KEY`, then:
@@ -143,21 +156,28 @@ iptables-persistent. Once they're in place:
 - Outbound traffic stays open, since the addons need to reach debrid, usenet
   and metadata services.
 
-Check again that SSH over Tailscale works (step 2), then:
+Check again that SSH over Tailscale works (step 2). On Oracle Cloud, install
+`rules.v4` as described in [Provider notes](#oracle-cloud) instead of with
+the first line below. Then:
 
 ```sh
 sudo install -m644 host/iptables/rules.v4 /etc/iptables/rules.v4
 sudo install -m644 host/iptables/rules.v6 /etc/iptables/rules.v6
-sudo netfilter-persistent reload
-sudo systemctl restart tailscaled docker
+sudo sh -c 'iptables-restore < /etc/iptables/rules.v4 && ip6tables-restore < /etc/iptables/rules.v6 && systemctl restart tailscaled docker'
 ```
 
 Keep these in mind:
 
-- `netfilter-persistent reload` flushes the whole filter table, including the
-  chains Docker and Tailscale add at runtime, so always restart both
-  afterwards (as above). At boot, the rules load before either one starts, so
-  no action is needed then.
+- `iptables-restore` replaces the whole filter table, including the chains
+  Docker and Tailscale add at runtime, so both are restarted in the same
+  command. If your SSH session drops halfway, that still happens. At boot,
+  the rules load before either one starts, so no action is needed then.
+- Use `iptables-restore`, not `netfilter-persistent reload`. Whether
+  `reload` flushes depends on `IPTABLES_RESTORE_NOFLUSH` in
+  `/etc/default/netfilter-persistent`. Some cloud images set it, and then
+  `reload` appends Apollo's rules behind the old ones, which keep deciding.
+  Check with `sudo iptables -S INPUT`: it must start with `-P INPUT DROP`
+  followed by Apollo's rules only.
 - Never run `netfilter-persistent save`. It would write Docker's and
   Tailscale's runtime chains into the rule files. Edit `host/iptables/`
   and re-install instead.
@@ -189,6 +209,33 @@ Finally, `sudo reboot`, and check that `docker ps` shows everything back up and
 
 The backup container runs its first backup on start (`docker logs backup`),
 then daily at 03:30 UTC.
+
+## Provider notes
+
+### Oracle Cloud
+
+Tested on Oracle's Ubuntu 26.04 image (arm64).
+
+- **Ingress rules.** The subnet's security list (or the instance's network
+  security group) only allows SSH by default. Add ingress rules from
+  `0.0.0.0/0` for 80/tcp, 443/tcp and 443/udp before step 6. The host
+  firewall from step 8 still decides what gets through after that.
+- **Preinstalled firewall.** The image ships iptables-persistent with its own
+  `/etc/iptables/rules.v4`. Besides opening SSH, it has an `InstanceServices`
+  chain that limits access to the instance's iSCSI boot volume and metadata
+  services; each rule's comment points to Oracle's documentation on the
+  security impact of removing it. Install Apollo's `rules.v4` with
+  Oracle's chain appended, instead of the plain `install` in step 8:
+  ```sh
+  [ -f /etc/iptables/rules.v4.oracle ] || sudo cp /etc/iptables/rules.v4 /etc/iptables/rules.v4.oracle
+  { sed '/^COMMIT/d' host/iptables/rules.v4
+    echo ':InstanceServices - [0:0]'
+    grep -E '^-A (OUTPUT|InstanceServices) ' /etc/iptables/rules.v4.oracle
+    echo COMMIT
+  } | sudo tee /etc/iptables/rules.v4 >/dev/null
+  ```
+  The image also sets `IPTABLES_RESTORE_NOFLUSH=yes`, which is why step 8
+  loads the rules with `iptables-restore`.
 
 ## Troubleshooting
 
